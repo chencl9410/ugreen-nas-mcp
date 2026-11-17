@@ -6,6 +6,7 @@ const client = new Client({ name: 'ugreen-install-check', version: '1.0.0' });
 const transport = new StdioClientTransport({
   command: process.execPath,
   args: [fileURLToPath(new URL('../server.mjs', import.meta.url))],
+  env: process.env.UGREEN_UNC_BIN ? { UGREEN_UNC_BIN: process.env.UGREEN_UNC_BIN } : undefined,
   stderr: 'pipe',
 });
 try {

@@ -105,6 +105,30 @@ npm run connect -- --no-open
 - “在这个 NAS 文件夹里创建一个子目录，把我指定的文件移进去。”
 - “把这条链接交给 NAS 下载到我指定的目录。”
 
+## macOS 手动安装
+
+提前准备 Git、Node.js 22 或更新版本和 Codex CLI。绿联提供 Apple Silicon（ARM64）和 Intel Mac（AMD64）的 `unc`，其安装脚本自动选择架构。已安装 `unc` 的用户可跳过下载步骤。
+
+```sh
+unc_installer=$(mktemp)
+curl -fsSL -o "$unc_installer" https://file1-cn.ugnas.com/nas-cli/install.sh &&
+  UNC_NO_SKILLS=1 sh "$unc_installer"
+rm -f "$unc_installer"
+```
+
+在本项目的克隆目录执行以下命令。如果 `unc` 装在默认的 `~/.local/bin/unc` 之外，请先在当前终端设置 `UGREEN_UNC_BIN` 为其绝对路径。
+
+```sh
+npm ci --ignore-scripts
+npm run connect
+npm run check
+./scripts/install.sh
+```
+
+连接助手会打开本机授权页，并在你操作期间持续检查登录状态。已有有效授权会直接复用。在 Codex 新开聊天或重启桌面端后加载 `ugreen-nas`。传输大文件或安装应用超过 Codex 默认工具超时的，可在 `[mcp_servers.ugreen-nas]` 下单独设置 `tool_timeout_sec = 1860`。
+
+项目目录是 MCP 的启动目录，请保留。要移除 MCP 注册，运行 `./scripts/install.sh --remove`，本机 `unc` 的 NAS 授权可以继续使用。
+
 ## 授权网页怎么填
 
 这就是 WorkBuddy 点击绿联云图标时打开的官方页面，由本机 `unc` 提供。Codex 通过连接助手打开同一页面，不需要先安装或运行 WorkBuddy。
@@ -120,6 +144,8 @@ npm run connect -- --no-open
 | `访问令牌` | 提示为“在「绿联云」App 的‘个人中心 > 本地账号 > 访问与授权’中创建”。在该入口创建访问令牌，按需要选择查询或读写权限，再粘贴到本机网页。使用开放平台令牌，通常以 `ugpoa_v1.` 开头，不是 NAS 登录密码。 |
 | 令牌框右侧眼睛 | 切换显示或隐藏令牌，方便自己核对。不要把显示令牌的截图、令牌正文或认证缓存分享出去。 |
 | `连接` 按钮 | 地址与令牌都填写后才可点击；任一项为空时显示为灰色。提交过程中显示“连接中”。 |
+
+自有域名经反向代理时，在 DDNS 页签填外部域名和 HTTPS 端口。如果 OpenCLI 返回 `secure_transport_required`，检查反向代理到 NAS 的上游地址是否也使用 HTTPS。NAS 的实际 HTTPS 端口可在「控制面板 → 设备连接 → 门户设置」查看。
 
 令牌决定允许执行哪些方法，连接器没有额外的只读限制。需要写入时，应在创建令牌时授予对应读写权限；部分管理功能还要求管理员账号。需要扩大权限时，请在 NAS 上检查授权，必要时新建具有所需权限的令牌并重新授权。
 
