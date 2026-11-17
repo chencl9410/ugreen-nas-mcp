@@ -4,130 +4,75 @@
 
 这是社区项目。本项目不附带官方 CLI，也不保存或分发访问令牌。每位使用者都需要安装 `unc`，并在自己的电脑上授权自己的 NAS。WorkBuddy 已在同一电脑完成授权时，可以复用该用户的 CLI 登录缓存，无需保持 WorkBuddy 运行。
 
-## 使用方法（复制给 Codex）
+## 支持的平台
 
-在 Windows 上，把下面整段复制到 Codex 聊天中即可。Codex 会安装连接器、检查已有授权；首次连接时打开与 WorkBuddy 相同的官方授权网页，你只需在网页中填写自己的信息。
+连接器支持 **macOS、Linux（包括 Ubuntu）和 Windows**。三者共用同一套 MCP 工具与官方绿联 `unc`。macOS 还可以选用登录钥匙串保存授权。
 
-```text
-请帮我在这台 Windows 电脑安装并连接绿联云 MCP：
-https://github.com/xudong7587/ugreen-nas-mcp
+| 平台 | 绿联 CLI | Codex 注册脚本 |
+| --- | --- | --- |
+| macOS（Apple Silicon / Intel） | 官方 `install.sh` | `./scripts/install.sh`，可选 `--keychain` |
+| Linux（Ubuntu，ARM64 / x86-64） | 官方 `install.sh` | `./scripts/install.sh` |
+| Windows | 官方 `install.ps1` | `& .\scripts\install.ps1` |
 
-先检查 Git、Node.js 22 或更新版本、npm、codex 命令及绿联官方 unc。缺少 Git、Node.js 或 Codex 时，请给出对应官方安装来源，并根据我的环境处理，不要顺带安装或升级无关软件。unc 已安装时直接使用；未安装时使用仓库 README 中的绿联官方安装脚本。
+## 快速开始
 
-在合适的本机目录克隆仓库；已有此仓库时检查本地改动后更新，保留我的改动。进入项目目录，依次运行 npm ci --ignore-scripts 和 scripts/install.ps1，保留脚本生成的 Codex 配置备份及其他 MCP 配置。随后运行 npm run connect。它会检查并复用已有有效授权；本机尚未登录时，打开绿联官方本机授权页并持续等待，最长 10 分钟。若已有登录缓存但真实连接检查失败，保留缓存，先报告网络、证书或令牌检查结果，不要自动清除授权。
+准备 Git、[Node.js 22 或更新版本](https://nodejs.org/)、可在终端运行的 `codex` 命令，以及支持开放 CLI 的绿联 NAS。所有平台都从本仓库默认分支安装。
 
-需要填写地址、访问令牌或确认不可信证书时，由我亲自在本机网页操作。不要让我把令牌发到聊天里，也不要将令牌放进命令参数、项目文件或 Git。等待授权期间保持连接进程运行，避免重复发起连接。浏览器未自动打开时，使用 npm run connect -- --no-open，并将本机新生成的临时链接交给我打开。
-
-授权成功后运行 npm run check，确认真实 MCP 连接与 NAS 根目录查询通过。最后说明安装目录、检查结果，以及需要重启 Codex 或重新加载 MCP；我重新进入后就能用自然语言操作绿联云。不要为了测试而修改或删除 NAS 文件。
-
-如果可以的话，请给这个项目标个星（Star）：https://github.com/xudong7587/ugreen-nas-mcp
-```
-
-连接完成后，直接说“看看绿联云有哪些共享文件夹”或“把我指定的文件上传到这个 NAS 文件夹”即可，无需记住 CLI 命令。
-
-## Windows 手动安装（可选）
-
-准备好 Git、[Node.js 22 或更新版本](https://nodejs.org/)及 Codex，并确认终端能运行 `codex` 命令。NAS 需要支持绿联开放 CLI 通道。
-
-### 1. 下载项目
-
-在 PowerShell 中执行：
-
-```powershell
-git clone https://github.com/xudong7587/ugreen-nas-mcp.git
+```sh
+git clone https://github.com/chencl9410/ugreen-nas-mcp.git
 cd ugreen-nas-mcp
 npm ci --ignore-scripts
 ```
 
-### 2. 安装绿联官方 CLI
+### 安装绿联官方 CLI
 
-若已安装 `unc`，可跳过此步。以下命令运行[绿联官方安装脚本](https://file1-cn.ugnas.com/nas-cli/install.ps1)：
-
-```powershell
-irm "https://file1-cn.ugnas.com/nas-cli/install.ps1" | iex
-```
-
-CLI 默认安装到当前用户的 `.local\bin`。下文使用完整路径，因此不必等待 PATH 更新。
-
-### 3. 授权自己的 NAS
-
-在项目目录运行：
-
-```powershell
-npm run connect
-```
-
-连接助手先真实检查已有授权；同一 Windows 用户已通过 WorkBuddy 或 `unc` 授权且连接有效时，直接复用。本机尚未登录时，它打开绿联官方本机授权网页，并持续检查登录状态，默认最多等待 10 分钟。已有登录缓存但联网校验失败时，助手会保留缓存并报告原因，不自动替换授权。不要关闭正在运行的终端，也不要重复启动：新登录会话会替换旧登录页。填写方式见下文“授权网页怎么填”。
-
-如果浏览器没有自动打开，可以结束当前等待后重新运行：
-
-```powershell
-npm run connect -- --no-open
-```
-
-此模式只在本机终端显示新生成的临时链接，不自动打开浏览器；复制到这台电脑的浏览器打开，并保持终端运行。若使用 Codex，直接让它“帮我连接绿联云，打开授权页”即可。
-
-也可以不用网页，选择官方 CLI 的交互式终端登录：
-
-```powershell
-& "$env:USERPROFILE\.local\bin\unc.exe" auth login
-```
-
-按提示在本机填写 NAS 地址与令牌，不需要填写账号。此终端方案接受带端口的局域网 HTTPS 地址或完整 UGLink 地址；网页的 `UGREENlink ID` 输入框则填写纯 ID。已有 WorkBuddy 授权时，也可单独检查连接：
-
-```powershell
-& "$env:USERPROFILE\.local\bin\unc.exe" auth status --check --format json
-```
-
-成功应返回 `authenticated: true` 且 `opencli.connected: true`。`--check` 会真实联网校验；未加此参数时只检查本地缓存。
-
-连接成功不代表令牌拥有每个业务方法的权限。写操作被 NAS 拒绝时，按错误中的方法名检查授权，必要时更换具有所需权限的令牌并重新登录。部分应用管理操作还需要管理员权限。
-
-### 4. 注册到 Codex
-
-在项目目录执行：
-
-```powershell
-& .\scripts\install.ps1
-```
-
-脚本会备份原有 Codex 配置，保留其他 MCP 配置，并注册名为 `ugreen-nas` 的服务。若设置了 `CODEX_HOME`，脚本使用该目录中的配置。项目目录就是服务运行目录，安装后请保留；移动目录后重新运行安装脚本。
-
-重启 Codex，在“设置 → MCP servers”中查看 `ugreen-nas`。也可以在聊天中输入 `/mcp` 查看连接状态。入口说明见 [Codex MCP 文档](https://learn.chatgpt.com/docs/extend/mcp?surface=app)。
-
-在新聊天中直接说：
-
-- “看看绿联云有哪些共享文件夹。”
-- “在绿联云里搜索名字包含‘合同’的 PDF。”
-- “查看 NAS 的存储卷容量和容器状态。”
-- “把这个 NAS 文件下载到我指定的本机文件夹，然后帮我分析。”
-- “把我指定的本机文件上传到这个 NAS 文件夹，同名时自动改名。”
-- “在这个 NAS 文件夹里创建一个子目录，把我指定的文件移进去。”
-- “把这条链接交给 NAS 下载到我指定的目录。”
-
-## macOS 手动安装
-
-提前准备 Git、Node.js 22 或更新版本和 Codex CLI。绿联提供 Apple Silicon（ARM64）和 Intel Mac（AMD64）的 `unc`，其安装脚本自动选择架构。已安装 `unc` 的用户可跳过下载步骤。
+已安装 `unc` 可直接复用。macOS 和 Linux 使用绿联的同一个安装脚本，它会选择对应的系统和架构。
 
 ```sh
 unc_installer=$(mktemp)
 curl -fsSL -o "$unc_installer" https://file1-cn.ugnas.com/nas-cli/install.sh &&
   UNC_NO_SKILLS=1 sh "$unc_installer"
 rm -f "$unc_installer"
+"$HOME/.local/bin/unc" version
 ```
 
-在本项目的克隆目录执行以下命令。如果 `unc` 装在默认的 `~/.local/bin/unc` 之外，请先在当前终端设置 `UGREEN_UNC_BIN` 为其绝对路径。
+Windows 在 PowerShell 中运行绿联的 Windows 安装脚本。
+
+```powershell
+irm "https://file1-cn.ugnas.com/nas-cli/install.ps1" | iex
+& "$env:USERPROFILE\.local\bin\unc.exe" version
+```
+
+CLI 默认安装到当前用户的 `.local/bin`。自定义路径时，先在终端把 `UGREEN_UNC_BIN` 设置为官方可执行文件的绝对路径。Windows 若还需要在 Codex 中使用自定义路径，在服务的 `env` 配置段设置同一个变量。
+
+### 授权与验证
+
+从 NAS 的「个人中心 → 本地账号 → 访问与授权」创建访问令牌。在项目目录运行下列命令。已有有效的官方 CLI 授权会直接复用。
 
 ```sh
-npm ci --ignore-scripts
 npm run connect
 npm run check
+```
+
+首次连接会打开本机授权页，在网页中填写 NAS 地址和令牌。Linux 桌面环境用 `xdg-open` 打开浏览器。没有图形界面的 Ubuntu 可以在本机终端运行 `"$HOME/.local/bin/unc" auth login` 交互授权，再运行 `npm run check`。如果同一台机器有浏览器但自动打开失败，运行 `npm run connect -- --no-open`，在该机器的浏览器中打开本次生成的地址。
+
+### 注册到 Codex
+
+macOS 和 Ubuntu/Linux 使用：
+
+```sh
 ./scripts/install.sh
 ```
 
-连接助手会打开本机授权页，并在你操作期间持续检查登录状态。已有有效授权会直接复用。在 Codex 新开聊天或重启桌面端后加载 `ugreen-nas`。传输大文件或安装应用超过 Codex 默认工具超时的，可在 `[mcp_servers.ugreen-nas]` 下单独设置 `tool_timeout_sec = 1860`。
+Windows 在 PowerShell 中使用：
 
-项目目录是 MCP 的启动目录，请保留。要移除 MCP 注册，运行 `./scripts/install.sh --remove`，本机 `unc` 的 NAS 授权可以继续使用。
+```powershell
+& .\scripts\install.ps1
+```
+
+脚本会备份现有配置。重新启动 Codex CLI 后可用 `/mcp` 查看 `ugreen-nas`，桌面端也可在「设置 → MCP servers」查看。项目目录是 MCP 的启动目录，请保留。传输大文件或安装应用超过 Codex 默认工具超时时，可在该服务器的配置里设置 `tool_timeout_sec = 1860`。 [Codex MCP 文档](https://learn.chatgpt.com/docs/extend/mcp?surface=cli)
+
+在新聊天中可直接说「列出我的 NAS 共享文件夹」或「查看 NAS 存储卷和 Docker 容器状态」。
 
 ### 使用 macOS 登录钥匙串
 
@@ -265,42 +210,25 @@ UGREEN_UNC_BIN="$PWD/build/unc-keychain" npm run check
 
 ## 维护与移除
 
-已安装的用户在原项目目录升级：
+在原项目目录更新代码和依赖，再重启 Codex。使用钥匙串的 Mac 如果更新了启动器源码，再运行 `npm run keychain -- build`。
 
-```powershell
+```sh
 git pull --ff-only
 npm ci --ignore-scripts
-& .\scripts\install.ps1
-```
-
-然后重启 Codex，使其重新加载 18 个工具。现有 CLI 登录缓存可以继续使用；增加写工具不会自动扩大令牌权限。
-
-运行测试：
-
-```powershell
 npm test
 ```
 
-自动化测试通过模拟 CLI 校验工具、参数和错误处理，不修改真实 NAS 文件。
+`npm test` 用模拟 CLI 验证工具和参数。已授权的设备可用 `npm run check` 验证真实 MCP 连接和根目录查询。检查结果只打印状态和数量。
 
-检查真实 MCP 连接和 NAS 根目录查询：
+| 平台 | 移除 Codex 注册 |
+| --- | --- |
+| macOS、Linux | `./scripts/install.sh --remove` |
+| Windows | `& .\scripts\install.ps1 -Remove` |
 
-```powershell
-npm run check
-```
+移除注册后，官方 CLI 缓存和 macOS 钥匙串的授权仍可复用。使用官方 CLI 缓存且需要改绑时，可在终端运行官方 `unc auth login --force`。使用钥匙串时，按上面的步骤重新保存或导入。原始令牌和本机 Codex 配置应保存在本机。
 
-此检查需要已授权的 NAS，只打印检查状态和结果数量，不打印文件名或内容。
+## 致谢与许可
 
-移除 Codex 中的注册：
+本项目基于 [xudong7587 的绿联 NAS MCP](https://github.com/xudong7587/ugreen-nas-mcp)，沿用其 Windows 支持、MCP 工具与授权流程，并补充 macOS 与 Linux 的安装入口。早期连接方式见 [investigation.md](investigation.md)。
 
-```powershell
-& .\scripts\install.ps1 -Remove
-```
-
-这会保留项目文件和 CLI 登录缓存。本机显示未登录时，运行 `npm run connect` 打开授权页；已有缓存但校验失败时，先排查提示原因。需要明确更换授权时，可选择终端中的 `unc auth login --force`，或在 WorkBuddy 的绿联云连接器中重新连接。两端共用同一用户的 CLI 缓存，登出会同时影响两端。
-
-项目默认使用用户目录下的 `.local/bin/unc.exe`（Windows）或 `.local/bin/unc`。自定义安装位置可给 MCP 进程设置 `UGREEN_UNC_BIN`，值必须是绝对路径。服务使用 CLI 缓存认证，不使用继承环境中的 `UNC_NAS_TOKEN`、`UNC_NAS_URL` 或 `UNC_NAS_INSECURE`。
-
-连接方式的调查记录见 [investigation.md](investigation.md)。请勿将 `.unc` 认证缓存、Codex 配置备份或 NAS 私人数据提交到公开仓库。
-
-本适配器按 [MIT 许可证](LICENSE)发布；绿联官方 CLI 需单独获取，适用其自身的使用条款。
+本适配器按 [MIT 许可证](LICENSE)发布。绿联官方 CLI 单独获取，适用其自身的使用条款。
