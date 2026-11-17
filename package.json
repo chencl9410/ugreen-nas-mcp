@@ -15,6 +15,7 @@
   "scripts": {
     "start": "node server.mjs",
     "connect": "node scripts/connect.mjs",
+    "keychain": "node scripts/keychain.mjs",
     "test": "node --test test/*.test.mjs",
     "check": "node scripts/check.mjs"
   },

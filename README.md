@@ -129,6 +129,38 @@ npm run check
 
 项目目录是 MCP 的启动目录，请保留。要移除 MCP 注册，运行 `./scripts/install.sh --remove`，本机 `unc` 的 NAS 授权可以继续使用。
 
+### 使用 macOS 登录钥匙串
+
+钥匙串是可选的认证方式。需要 Xcode 或 Xcode Command Line Tools，可用 `xcrun --find clang` 检查。先在项目根目录编译本机启动器。
+
+```sh
+npm run keychain -- build
+```
+
+如果官方 `unc` 不在 `~/.local/bin/unc`，先在当前终端设置 `UGREEN_KEYCHAIN_UNC_BIN` 为官方可执行文件的绝对路径。根据已有的授权，选择一种方式：
+
+| 场景 | 命令 |
+| --- | --- |
+| 首次保存或更换令牌 | `npm run keychain -- store` |
+| 导入当前用户的 `~/.unc/auth.json` | `npm run keychain -- import-cache` |
+| 导入此前本机启动器保存的 **UGREEN NAS for Codex** 条目 | `npm run keychain -- import-legacy-keychain` |
+
+`store` 会询问 NAS 的完整 HTTPS 地址（例如 `https://nas.example.net:9443`）和访问令牌。令牌输入不回显。使用 UGREENlink ID 时，先通过 `npm run connect` 完成官方授权，再用 `import-cache` 导入已解析的地址。若中继地址后续变化，重新完成官方授权并导入。
+
+保存和导入都会通过 `unc` 验证连接，成功后才更新名为 **UGREEN NAS MCP (macOS)** 的钥匙串条目。导入会保留原登录缓存或旧钥匙串条目。在 MCP 运行时，启动器从钥匙串读取地址和令牌，仅通过环境传给本次调用的 `unc`。令牌不需要放进命令参数、Codex 配置或 Git。
+
+可先在终端确认钥匙串授权可用，再为新的 Codex 安装注册启动器。
+
+```sh
+npm run keychain -- check
+UGREEN_UNC_BIN="$PWD/build/unc-keychain" npm run check
+./scripts/install.sh --keychain
+```
+
+如果已经配置了 MCP，在现有服务器的 `.env` 配置段里，把 `UGREEN_UNC_BIN` 改成项目下 `build/unc-keychain` 的绝对路径。官方 `unc` 自定义安装时，再加 `UGREEN_KEYCHAIN_UNC_BIN` 指向官方可执行文件。保留已有的工具权限和代理设置，然后重新打开 Codex。若 macOS 弹出钥匙串访问提示，请核对本机启动器路径。
+
+验证通过后，如需清理官方 `unc` 的明文缓存，先确认 WorkBuddy 或直接运行的 `unc` 已经不再依赖它，再运行官方 `unc auth logout`。之后重跑 `npm run keychain -- check`。自定义路径时，请直接运行对应路径下的官方 `unc`。
+
 ## 授权网页怎么填
 
 这就是 WorkBuddy 点击绿联云图标时打开的官方页面，由本机 `unc` 提供。Codex 通过连接助手打开同一页面，不需要先安装或运行 WorkBuddy。

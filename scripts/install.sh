@@ -3,18 +3,19 @@ set -eu
 
 case "${1:-}" in
   '') action=add ;;
+  --keychain) action=add-keychain ;;
   --remove) action=remove ;;
   -h|--help)
-    printf '%s\n' '用法：./scripts/install.sh [--remove]'
+    printf '%s\n' '用法：./scripts/install.sh [--keychain|--remove]'
     exit 0
     ;;
   *)
-    printf '%s\n' '用法：./scripts/install.sh [--remove]' >&2
+    printf '%s\n' '用法：./scripts/install.sh [--keychain|--remove]' >&2
     exit 2
     ;;
 esac
 if [ "$#" -gt 1 ]; then
-  printf '%s\n' '用法：./scripts/install.sh [--remove]' >&2
+  printf '%s\n' '用法：./scripts/install.sh [--keychain|--remove]' >&2
   exit 2
 fi
 
@@ -23,7 +24,7 @@ command -v codex >/dev/null 2>&1 || {
   exit 1
 }
 
-if [ "$action" = add ]; then
+if [ "$action" != remove ]; then
   project_dir=$(CDPATH= cd "$(dirname "$0")/.." && pwd -P)
   node_bin=$(node -p 'Number(process.versions.node.split(".")[0]) >= 22 ? process.execPath : ""') || exit 1
   if [ -z "$node_bin" ] || [ ! -d "$project_dir/node_modules/@modelcontextprotocol/sdk" ]; then
@@ -31,15 +32,23 @@ if [ "$action" = add ]; then
     exit 1
   fi
   unc_bin=${UGREEN_UNC_BIN:-"$HOME/.local/bin/unc"}
+  if [ "$action" = add-keychain ]; then
+    unc_bin=${UGREEN_KEYCHAIN_UNC_BIN:-"$HOME/.local/bin/unc"}
+    launcher="$project_dir/build/unc-keychain"
+    if [ "$(uname -s)" != Darwin ] || [ ! -x "$launcher" ]; then
+      printf '%s\n' '请先在 macOS 上运行 npm run keychain -- build。' >&2
+      exit 1
+    fi
+  fi
   case "$unc_bin" in
     /*) ;;
     *)
-      printf '%s\n' 'UGREEN_UNC_BIN 必须是 unc 的绝对路径。' >&2
+      printf '%s\n' '请为官方 unc 设置绝对路径。' >&2
       exit 1
       ;;
   esac
   if [ ! -x "$unc_bin" ]; then
-    printf '%s\n' '未找到可执行的绿联 CLI。请先安装官方 unc，或设置 UGREEN_UNC_BIN。' >&2
+    printf '%s\n' '未找到可执行的官方 unc。请先安装绿联 CLI，或核对自定义路径。' >&2
     exit 1
   fi
   if codex mcp get ugreen-nas >/dev/null 2>&1; then
@@ -59,6 +68,10 @@ fi
 if [ "$action" = remove ]; then
   codex mcp remove ugreen-nas
 else
-  codex mcp add ugreen-nas --env "UGREEN_UNC_BIN=$unc_bin" -- "$node_bin" "$project_dir/server.mjs"
+  if [ "$action" = add-keychain ]; then
+    codex mcp add ugreen-nas --env "UGREEN_UNC_BIN=$launcher" --env "UGREEN_KEYCHAIN_UNC_BIN=$unc_bin" -- "$node_bin" "$project_dir/server.mjs"
+  else
+    codex mcp add ugreen-nas --env "UGREEN_UNC_BIN=$unc_bin" -- "$node_bin" "$project_dir/server.mjs"
+  fi
   codex mcp get ugreen-nas
 fi
